@@ -80,13 +80,13 @@ var index = 1;
 		}
 	}
 
-    const fetchData = async (url, targetEl, options = {}) => {
+	const fetchData = async (url, targetEl, options = {}) => {
 		const response = await fetch(url, options);
 		if (!response.ok) throw new Error('Network response was not ok');
 		const data = await response.text();
 		targetEl.innerHTML = data;
 		run();
-    }
+	}
 })();
 	
 </script>
