@@ -73,8 +73,8 @@
 		};
 
 		const fetchData = async (url, targetEl, el, options = {}) => {
-			const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after'),
-				jxHeaders = el.attr('jx-headers'), jxVals = el.attr('jx-vals');
+			const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after'), jxHeaders = el.attr('jx-headers'),
+				jxVals = el.attr('jx-vals'), jxSwap = el.attr('jx-swap');
 			if (jxBefore) eval(jxBefore);
 			const method = options.method || 'get';
 			if (jxVals) (method === 'get') ?
@@ -91,7 +91,8 @@
 			if (!response.ok) throw new Error('Network response was not ok');
 			const data = await response.text();
 			const jxSelectAttribute = el.getAttribute('jx-select');
-			targetEl.innerHTML = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
+			//targetEl.innerHTML = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
+			applySwap(targetEl, data, jxSwap, jxSelectAttribute);
 			if (jxAfter) eval(jxAfter);
 			run();
 		};
@@ -106,6 +107,22 @@
 			}
 			return attributes;
 		};
+
+		const applySwap = (targetEl, data, jxSwap, jxSelectAttribute) => {
+			const contentToInsert = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
+			const swapActions = {
+				'outerHTML': () => targetEl.outerHTML = contentToInsert,
+				'append': () => targetEl.innerHTML += contentToInsert,
+				'prepend': () => targetEl.innerHTML = contentToInsert + targetEl.innerHTML,
+				'before': () => targetEl.insertAdjacentHTML('beforebegin', contentToInsert),
+				'after': () => targetEl.insertAdjacentHTML('afterend', contentToInsert),
+				'default': () => targetEl.innerHTML = contentToInsert,
+			};
+			const selectedAction = swapActions[jxSwap] || swapActions['default'];
+			selectedAction();
+		};
+
+
 	})();
 	
 </script>
