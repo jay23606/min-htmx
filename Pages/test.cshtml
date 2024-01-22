@@ -11,7 +11,7 @@
 </head>
 <body>
 
-	<div jx-get="test2.html" jx-target="#result2" jx-headers="Authorization: Bearer Token123; Custom-Header: Value123">
+	<div jx-get="test2.html" jx-target="#result2" jx-vals="a:1;b:2;c:3" jx-headers="Authorization: Bearer Token123; Custom-Header: Value123">
     <button>Load Data</button>
 </div>
 
@@ -41,67 +41,72 @@
 </div>
 
 <script>
-(function() {
-	HTMLElement.prototype.on = function (e, fn){this.addEventListener(e, fn)}
-	HTMLElement.prototype.attr = function(attribute, value){return value === undefined ? this.getAttribute(attribute) : (this.setAttribute(attribute, value), this)}
-	const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
-	const $DP = (htmlString, selector) => (new DOMParser().parseFromString(htmlString, 'text/html').querySelector(selector)?.innerHTML || '');
-	const httpVerbs = ['get', 'post', 'put', 'delete', 'patch'];
+	(function () {
+		HTMLElement.prototype.on = function (e, fn) { this.addEventListener(e, fn) }
+		HTMLElement.prototype.attr = function (attribute, value) { return value === undefined ? this.getAttribute(attribute) : (this.setAttribute(attribute, value), this) }
+		const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+		const $DP = (htmlString, selector) => (new DOMParser().parseFromString(htmlString, 'text/html').querySelector(selector)?.innerHTML || '');
+		const httpVerbs = ['get', 'post', 'put', 'delete', 'patch'];
 
-	document.addEventListener('DOMContentLoaded', () => run() );
-	
-	const run = () => {
-		httpVerbs.forEach(verb => {
-			const els = $$(`[jx-${verb}]:not([data-jx-applied])`);
-			els.forEach(el => {
-				applyLogic(el, verb);
-				el.setAttribute('data-jx-applied', 'true');
-			});
-		});
-	}
+		document.addEventListener('DOMContentLoaded', () => run());
 
-	const applyLogic = (el, verb) => {
-		const url = el.attr(`jx-${verb}`);
-		const jxTarget = el.attr('jx-target');
-		const jxTrigger = el.attr('jx-trigger');
-		let targetEl = jxTarget ? $(jxTarget) : el;
-		if (el instanceof HTMLFormElement) {
-			el.on('submit', async (e) => {
-				e.preventDefault();
-				await fetchData(url, targetEl, el, { method: verb, body: new URLSearchParams(new FormData(el)) });
-			});
-		} else el.on(jxTrigger || 'click', async () => await fetchData(url, targetEl, el, { method: verb }));
-	};
-
-	const fetchData = async (url, targetEl, el, options = {}) => {
-		const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after'), jxHeaders = el.attr('jx-headers');
-		if (jxBefore) eval(jxBefore);
-		const response = await fetch(url, {
-			...options,
-			headers: {
-				...options.headers,
-				...parseHeaders(jxHeaders)
-			}
-		});
-		if (!response.ok) throw new Error('Network response was not ok');
-		const data = await response.text();
-		const jxSelectAttribute = el.getAttribute('jx-select');
-		targetEl.innerHTML = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
-		if (jxAfter) eval(jxAfter);
-		run();
-	};
-
-	const parseHeaders = (headersString) => {
-		const headers = {};
-		if (headersString) {
-			headersString.split(';').forEach(header => {
-				const [name, value] = header.split(':');
-				if (name && value) headers[name.trim()] = value.trim();
+		const run = () => {
+			httpVerbs.forEach(verb => {
+				const els = $$(`[jx-${verb}]:not([data-jx-applied])`);
+				els.forEach(el => {
+					applyLogic(el, verb);
+					el.setAttribute('data-jx-applied', 'true');
+				});
 			});
 		}
-		return headers;
-	};
-})();
+
+		const applyLogic = (el, verb) => {
+			const url = el.attr(`jx-${verb}`), jxTarget = el.attr('jx-target'), jxTrigger = el.attr('jx-trigger');
+			let targetEl = jxTarget ? $(jxTarget) : el;
+
+			if (el instanceof HTMLFormElement) {
+				el.on('submit', async (e) => {
+					e.preventDefault();
+					await fetchData(url, targetEl, el, { method: verb, body: new URLSearchParams(new FormData(el)) });
+				});
+			} else el.on(jxTrigger || 'click', async () => await fetchData(url, targetEl, el, { method: verb }));
+		};
+
+		const fetchData = async (url, targetEl, el, options = {}) => {
+			const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after'),
+				jxHeaders = el.attr('jx-headers'), jxVals = el.attr('jx-vals');
+			if (jxBefore) eval(jxBefore);
+			const method = options.method || 'get';
+			if (jxVals) (method === 'get') ?
+					url += '?' + (new URLSearchParams(parseAttributes(jxVals))).toString() :
+					options.body = parseAttributes(jxVals);
+			const response = await fetch(url, {
+				...options,
+				method,
+				headers: {
+					...options.headers,
+					...parseAttributes(jxHeaders),
+				},
+			});
+			if (!response.ok) throw new Error('Network response was not ok');
+			const data = await response.text();
+			const jxSelectAttribute = el.getAttribute('jx-select');
+			targetEl.innerHTML = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
+			if (jxAfter) eval(jxAfter);
+			run();
+		};
+
+		const parseAttributes = (attributeValue) => {
+			const attributes = {};
+			if (attributeValue) {
+				attributeValue.split(';').forEach(attribute => {
+					const [name, value] = attribute.split(':');
+					if (name && value) attributes[name.trim()] = value.trim();
+				});
+			}
+			return attributes;
+		};
+	})();
 	
 </script>
 
