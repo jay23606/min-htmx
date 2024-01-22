@@ -55,7 +55,7 @@
 				const els = $$(`[jx-${verb}]:not([data-jx-applied])`);
 				els.forEach(el => {
 					applyLogic(el, verb);
-					el.setAttribute('data-jx-applied', 'true');
+					el.attr('data-jx-applied', 'true');
 				});
 			});
 		}
@@ -90,9 +90,9 @@
 			});
 			if (!response.ok) throw new Error('Network response was not ok');
 			const data = await response.text();
-			const jxSelectAttribute = el.getAttribute('jx-select');
-			//targetEl.innerHTML = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
-			applySwap(targetEl, data, jxSwap, jxSelectAttribute);
+			const jxSelect = el.getAttribute('jx-select');
+			//targetEl.innerHTML = (jxSelect) ? $DP(data, jxSelect) : data;
+			applySwap(targetEl, data, jxSwap, jxSelect);
 			if (jxAfter) eval(jxAfter);
 			run();
 		};
@@ -108,8 +108,8 @@
 			return attributes;
 		};
 
-		const applySwap = (targetEl, data, jxSwap, jxSelectAttribute) => {
-			const contentToInsert = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
+		const applySwap = (targetEl, data, jxSwap, jxSelect) => {
+			const contentToInsert = (jxSelect) ? $DP(data, jxSelect) : data;
 			const swapActions = {
 				'outerHTML': () => targetEl.outerHTML = contentToInsert,
 				'append': () => targetEl.innerHTML += contentToInsert,
