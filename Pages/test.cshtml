@@ -46,40 +46,32 @@
 	HTMLElement.prototype.attr = function(attribute, value){return value === undefined ? this.getAttribute(attribute) : (this.setAttribute(attribute, value), this)}
 	const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
 	const $DP = (htmlString, selector) => (new DOMParser().parseFromString(htmlString, 'text/html').querySelector(selector)?.innerHTML || '');
-	
+	const httpVerbs = ['get', 'post', 'put', 'delete', 'patch'];
+
 	document.addEventListener('DOMContentLoaded', () => run() );
 	
 	const run = () => {
-		const els = $$('[jx-get]:not([data-jx-applied]), [jx-put]:not([data-jx-applied])');
-		els.forEach(el => {
-			applyLogic(el);
-			el.setAttribute('data-jx-applied', 'true');
+		httpVerbs.forEach(verb => {
+			const els = $$(`[jx-${verb}]:not([data-jx-applied])`);
+			els.forEach(el => {
+				applyLogic(el, verb);
+				el.setAttribute('data-jx-applied', 'true');
+			});
 		});
 	}
 
-	const applyLogic = (el) => {
-		const url = el.attr('jx-get') || el.attr('jx-put'), jxTarget = el.attr('jx-target'), jxTrigger = el.attr('jx-trigger');
+	const applyLogic = (el, verb) => {
+		const url = el.attr(`jx-${verb}`);
+		const jxTarget = el.attr('jx-target');
+		const jxTrigger = el.attr('jx-trigger');
 		let targetEl = jxTarget ? $(jxTarget) : el;
 		if (el instanceof HTMLFormElement) {
 			el.on('submit', async (e) => {
 				e.preventDefault();
-				await fetchData(url, targetEl, el, { method: 'PUT', body: new URLSearchParams(new FormData(el)) });
+				await fetchData(url, targetEl, el, { method: verb, body: new URLSearchParams(new FormData(el)) });
 			});
-		} else el.on(jxTrigger || 'click', async () => await fetchData(url, targetEl, el));
-	}
-
-	////Without jx-headers
-	// const fetchData = async (url, targetEl, el, options = {}) => {
-	// 	const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after');
-	// 	if (jxBefore) eval(jxBefore);
-	// 	const response = await fetch(url, options);
-	// 	if (!response.ok) throw new Error('Network response was not ok');
-	// 	const data = await response.text();
-	// 	const jxSelectAttribute = el.getAttribute('jx-select');
-	// 	targetEl.innerHTML = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
-	// 	if (jxAfter) eval(jxAfter);
-	// 	run();
-	// };
+		} else el.on(jxTrigger || 'click', async () => await fetchData(url, targetEl, el, { method: verb }));
+	};
 
 	const fetchData = async (url, targetEl, el, options = {}) => {
 		const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after'), jxHeaders = el.attr('jx-headers');
