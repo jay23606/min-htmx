@@ -68,6 +68,7 @@
 		} else el.on(jxTrigger || 'click', async () => await fetchData(url, targetEl, el));
 	}
 
+	////Without jx-headers
 	// const fetchData = async (url, targetEl, el, options = {}) => {
 	// 	const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after');
 	// 	if (jxBefore) eval(jxBefore);
@@ -103,14 +104,11 @@
 		if (headersString) {
 			headersString.split(';').forEach(header => {
 				const [name, value] = header.split(':');
-				if (name && value) {
-					headers[name.trim()] = value.trim();
-				}
+				if (name && value) headers[name.trim()] = value.trim();
 			});
 		}
 		return headers;
 	};
-
 })();
 	
 </script>
