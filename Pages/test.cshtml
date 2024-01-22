@@ -11,7 +11,7 @@
 </head>
 <body>
 
-<div jx-get="test2.html" jx-target="#result2">
+	<div jx-get="test2.html" jx-target="#result2" jx-headers="Authorization: Bearer Token123; Custom-Header: Value123">
     <button>Load Data</button>
 </div>
 
@@ -68,16 +68,47 @@
 		} else el.on(jxTrigger || 'click', async () => await fetchData(url, targetEl, el));
 	}
 
+	// const fetchData = async (url, targetEl, el, options = {}) => {
+	// 	const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after');
+	// 	if (jxBefore) eval(jxBefore);
+	// 	const response = await fetch(url, options);
+	// 	if (!response.ok) throw new Error('Network response was not ok');
+	// 	const data = await response.text();
+	// 	const jxSelectAttribute = el.getAttribute('jx-select');
+	// 	targetEl.innerHTML = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
+	// 	if (jxAfter) eval(jxAfter);
+	// 	run();
+	// };
+
 	const fetchData = async (url, targetEl, el, options = {}) => {
-		const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after');
+		const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after'), jxHeaders = el.attr('jx-headers');
 		if (jxBefore) eval(jxBefore);
-		const response = await fetch(url, options);
+		const response = await fetch(url, {
+			...options,
+			headers: {
+				...options.headers,
+				...parseHeaders(jxHeaders)
+			}
+		});
 		if (!response.ok) throw new Error('Network response was not ok');
 		const data = await response.text();
 		const jxSelectAttribute = el.getAttribute('jx-select');
 		targetEl.innerHTML = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
 		if (jxAfter) eval(jxAfter);
 		run();
+	};
+
+	const parseHeaders = (headersString) => {
+		const headers = {};
+		if (headersString) {
+			headersString.split(';').forEach(header => {
+				const [name, value] = header.split(':');
+				if (name && value) {
+					headers[name.trim()] = value.trim();
+				}
+			});
+		}
+		return headers;
 	};
 
 })();
