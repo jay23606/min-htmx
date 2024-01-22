@@ -18,7 +18,6 @@
 <div id="result2">
 </div>
 
-
 @{
     // Retrieve values from the query string or use default values
     string firstName = "Joe";
@@ -36,7 +35,7 @@
     <div><label>First Name</label>: @firstName</div>
     <div><label>Last Name</label>: @lastName</div>
     <div><label>Email</label>: @email</div>
-		<button jx-get="/test2?@queryString" jx-target='#container' jx-after-request="alert('interesting')">
+		<button jx-get="/test2?@queryString" jx-target='#container' jx-after="alert('interesting')">
         Click To Edit
     </button>
 </div>
@@ -74,13 +73,19 @@
 	}
 
 	const fetchData = async (url, targetEl, el, options = {}) => {
-		const jxBeforeRequest = el.attr('jx-before-request');
-		const jxAfterRequest = el.attr('jx-after-request');
+		const jxBeforeRequest = el.attr('jx-before'), jxAfterRequest = el.attr('jx-after');
 		if (jxBeforeRequest) eval(jxBeforeRequest);
 		const response = await fetch(url, options);
 		if (!response.ok) throw new Error('Network response was not ok');
 		const data = await response.text();
-		targetEl.innerHTML = data;
+
+		const jxSelectAttribute = el.getAttribute('jx-select');
+		if (jxSelectAttribute) {
+			const filteredContent = new DOMParser().parseFromString(data, 'text/html').querySelector(jxSelectAttribute);
+			targetEl.innerHTML = filteredContent ? filteredContent.innerHTML : '';
+		} else targetEl.innerHTML = data;
+
+		//targetEl.innerHTML = data;
 		if (jxAfterRequest) eval(jxAfterRequest);
 		run();
 	};
