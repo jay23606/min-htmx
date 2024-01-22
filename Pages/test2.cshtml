@@ -6,7 +6,7 @@
     string email = Request.Query["email"].FirstOrDefault() ?? "joe@blow.com";
 }
 
-<form jx-put="/test" jx-target="body">
+<form jx-put="/test" jx-target="body" jx-after-request="alert('also interesting')">
     @Html.AntiForgeryToken()
     <div>
         <label>First Name</label>

@@ -25,9 +25,9 @@
     string lastName = "Blow";
     string email = "joe@blow.com";
 	if(HttpContext.Request.HasFormContentType){
-		firstName = Request.Form["firstName"].FirstOrDefault();
-		lastName = Request.Form["lastName"].FirstOrDefault();
-		email = Request.Form["email"].FirstOrDefault();
+		firstName = Request.Form["firstName"].FirstOrDefault() ?? "";
+		lastName = Request.Form["lastName"].FirstOrDefault() ?? "";
+		email = Request.Form["email"].FirstOrDefault() ?? "";
 	}
 	string queryString = $"firstName={WebUtility.UrlEncode(firstName)}&lastName={WebUtility.UrlEncode(lastName)}&email={WebUtility.UrlEncode(email)}";
 }
@@ -36,13 +36,12 @@
     <div><label>First Name</label>: @firstName</div>
     <div><label>Last Name</label>: @lastName</div>
     <div><label>Email</label>: @email</div>
-    <button jx-get="/test2?@queryString" jx-target='#container'>
+		<button jx-get="/test2?@queryString" jx-target='#container' jx-after-request="alert('interesting')">
         Click To Edit
     </button>
 </div>
 
 <script>
-var index = 1;
 (function() {
 	HTMLElement.prototype.on = function (e, fn){this.addEventListener(e, fn)}
 	HTMLElement.prototype.attr = function(attribute, value){return value === undefined ? this.getAttribute(attribute) : (this.setAttribute(attribute, value), this)}
@@ -59,34 +58,33 @@ var index = 1;
 	}
 
 	const applyLogic = (el) => {
-		console.log(index++);
 		const url = el.attr('jx-get') || el.attr('jx-put'), jxTarget = el.attr('jx-target'), jxTrigger = el.attr('jx-trigger');
 		let targetEl = el;
 		if (jxTarget) targetEl = $(jxTarget);
 		if (el instanceof HTMLFormElement) {
-			//If it's a form, attach the submit event handler
 			el.on('submit', async (e) => {
 				e.preventDefault();
-				//await fetchData(url, targetEl, { method: 'PUT', body: new FormData(el) });
-				await fetchData(url, targetEl, { method: 'PUT', body: new URLSearchParams(new FormData(el)) });
+				await fetchData(url, targetEl, el, { method: 'PUT', body: new URLSearchParams(new FormData(el)) });
 			});
 		} else {
-			//Handle the click or trigger event for other elements
-			if (jxTrigger) {
-				el.on(jxTrigger, async () => await fetchData(url, targetEl));
-			} else {
-				el.on('click', async () => await fetchData(url, targetEl));
-			}
+			(jxTrigger) ? 
+				el.on(jxTrigger, async () => await fetchData(url, targetEl, el)) :
+				el.on('click', async () => await fetchData(url, targetEl, el));
 		}
 	}
 
-    const fetchData = async (url, targetEl, options = {}) => {
+	const fetchData = async (url, targetEl, el, options = {}) => {
+		const jxBeforeRequest = el.attr('jx-before-request');
+		const jxAfterRequest = el.attr('jx-after-request');
+		if (jxBeforeRequest) eval(jxBeforeRequest);
 		const response = await fetch(url, options);
 		if (!response.ok) throw new Error('Network response was not ok');
 		const data = await response.text();
 		targetEl.innerHTML = data;
+		if (jxAfterRequest) eval(jxAfterRequest);
 		run();
-    }
+	};
+
 })();
 	
 </script>
