@@ -45,7 +45,8 @@
 	HTMLElement.prototype.on = function (e, fn){this.addEventListener(e, fn)}
 	HTMLElement.prototype.attr = function(attribute, value){return value === undefined ? this.getAttribute(attribute) : (this.setAttribute(attribute, value), this)}
 	const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
-
+	const $DP = (htmlString, selector) => (new DOMParser().parseFromString(htmlString, 'text/html').querySelector(selector)?.innerHTML || '');
+	
 	document.addEventListener('DOMContentLoaded', () => run() );
 	
 	const run = () => {
@@ -58,35 +59,24 @@
 
 	const applyLogic = (el) => {
 		const url = el.attr('jx-get') || el.attr('jx-put'), jxTarget = el.attr('jx-target'), jxTrigger = el.attr('jx-trigger');
-		let targetEl = el;
-		if (jxTarget) targetEl = $(jxTarget);
+		let targetEl = jxTarget ? $(jxTarget) : el;
 		if (el instanceof HTMLFormElement) {
 			el.on('submit', async (e) => {
 				e.preventDefault();
 				await fetchData(url, targetEl, el, { method: 'PUT', body: new URLSearchParams(new FormData(el)) });
 			});
-		} else {
-			(jxTrigger) ? 
-				el.on(jxTrigger, async () => await fetchData(url, targetEl, el)) :
-				el.on('click', async () => await fetchData(url, targetEl, el));
-		}
+		} else el.on(jxTrigger || 'click', async () => await fetchData(url, targetEl, el));
 	}
 
 	const fetchData = async (url, targetEl, el, options = {}) => {
-		const jxBeforeRequest = el.attr('jx-before'), jxAfterRequest = el.attr('jx-after');
-		if (jxBeforeRequest) eval(jxBeforeRequest);
+		const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after');
+		if (jxBefore) eval(jxBefore);
 		const response = await fetch(url, options);
 		if (!response.ok) throw new Error('Network response was not ok');
 		const data = await response.text();
-
 		const jxSelectAttribute = el.getAttribute('jx-select');
-		if (jxSelectAttribute) {
-			const filteredContent = new DOMParser().parseFromString(data, 'text/html').querySelector(jxSelectAttribute);
-			targetEl.innerHTML = filteredContent ? filteredContent.innerHTML : '';
-		} else targetEl.innerHTML = data;
-
-		//targetEl.innerHTML = data;
-		if (jxAfterRequest) eval(jxAfterRequest);
+		targetEl.innerHTML = (jxSelectAttribute) ? $DP(data, jxSelectAttribute) : data;
+		if (jxAfter) eval(jxAfter);
 		run();
 	};
 
