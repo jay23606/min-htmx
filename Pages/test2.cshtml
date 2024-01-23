@@ -6,7 +6,7 @@
     string email = Request.Query["email"].FirstOrDefault() ?? "joe@blow.com";
 }
 
-<form jx-put="/test" jx-target="#container" jx-select="#container" jx-after="alert('also interesting')">
+<form hx-put="/test" hx-target="#container" hx-select="#container" hx-after="alert('also interesting')">
     @Html.AntiForgeryToken()
     <div>
         <label>First Name</label>
@@ -21,5 +21,5 @@
         <input type="email" name="email" value="@email">
     </div>
     <button class="btn">Submit</button>
-    <button class="btn" jx-get="/contact/1">Cancel</button>
+    <button class="btn" hx-get="/contact/1">Cancel</button>
 </form>
