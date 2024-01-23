@@ -11,7 +11,7 @@
 </head>
 <body>
 
-	<div jx-get="test2.html" jx-target="#result2" jx-vals="js:{a:1,b:2,c:3}" jx-headers="{'Authorization':'Bearer Token123','Custom-Header':'Value123'}">
+	<div hx-get="test2.html" hx-target="#result2" hx-vals="js:{a:1,b:2,c:3}" hx-headers="{'Authorization':'Bearer Token123','Custom-Header':'Value123'}">
     <button>Load Data</button>
 </div>
 
@@ -35,7 +35,7 @@
     <div><label>First Name</label>: @firstName</div>
     <div><label>Last Name</label>: @lastName</div>
     <div><label>Email</label>: @email</div>
-		<button jx-get="/test2?@queryString" jx-target='#container' jx-after="alert('interesting')">
+		<button hx-get="/test2?@queryString" hx-target='#container' hx-after="alert('interesting')">
         Click To Edit
     </button>
 </div>
@@ -52,10 +52,10 @@
 
 		const run = () => {
 			httpVerbs.forEach(verb => {
-				const els = $$(`[jx-${verb}]:not([data-jx-applied])`);
+				const els = $$(`[hx-${verb}]:not([data-hx-applied])`);
 				els.forEach(el => {
 					applyLogic(el, verb);
-					el.attr('data-jx-applied', 'true');
+					el.attr('data-hx-applied', 'true');
 				});
 			});
 		}
@@ -63,47 +63,47 @@
 		const getEventType = (el) => (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) ? 'change' : 'click';
 
 		const applyLogic = (el, verb) => {
-			const url = el.attr(`jx-${verb}`), jxTarget = el.attr('jx-target'), jxTrigger = el.attr('jx-trigger');
-			let targetEl = jxTarget ? $(jxTarget) : el;
+			const url = el.attr(`hx-${verb}`), hxTarget = el.attr('hx-target'), hxTrigger = el.attr('hx-trigger');
+			let targetEl = hxTarget ? $(hxTarget) : el;
 
 			if (el instanceof HTMLFormElement) {
 				el.on('submit', async (e) => {
 					e.preventDefault();
 					await fetchData(url, targetEl, el, { method: verb, body: new URLSearchParams(new FormData(el)) });
 				});
-				} else el.on(jxTrigger || getEventType(el), async () => await fetchData(url, targetEl, el, { method: verb }));
+				} else el.on(hxTrigger || getEventType(el), async () => await fetchData(url, targetEl, el, { method: verb }));
 		};
 
 		const fetchData = async (url, targetEl, el, options = {}) => {
-			const jxBefore = el.attr('jx-before'), jxAfter = el.attr('jx-after'), jxHeaders = el.attr('jx-headers'),
-				jxVals = el.attr('jx-vals'), jxSwap = el.attr('jx-swap');
-			if (jxBefore) eval(jxBefore);
+			const hxBefore = el.attr('hx-before'), hxAfter = el.attr('hx-after'), hxHeaders = el.attr('hx-headers'),
+				hxVals = el.attr('hx-vals'), hxSwap = el.attr('hx-swap');
+			if (hxBefore) eval(hxBefore);
 			const method = options.method || 'get';
-			if (jxVals) (method === 'get') ?
-					url += '?' + (new URLSearchParams(parseAttributes(jxVals))).toString() :
-					options.body = parseAttributes(jxVals);
+			if (hxVals) (method === 'get') ?
+					url += '?' + (new URLSearchParams(parseAttributes(hxVals))).toString() :
+					options.body = parseAttributes(hxVals);
 			const response = await fetch(url, {
 				...options,
 				method,
 				headers: {
 					...options.headers,
-					...parseAttributes(jxHeaders),
+					...parseAttributes(hxHeaders),
 				},
 			});
 			if (!response.ok) throw new Error('Network response was not ok');
 			const data = await response.text();
-			const jxSelect = el.getAttribute('jx-select');
-			//targetEl.innerHTML = (jxSelect) ? $DP(data, jxSelect) : data;
-			applySwap(targetEl, data, jxSwap, jxSelect);
-			if (jxAfter) eval(jxAfter);
+			const hxSelect = el.getAttribute('hx-select');
+			//targetEl.innerHTML = (hxSelect) ? $DP(data, hxSelect) : data;
+			applySwap(targetEl, data, hxSwap, hxSelect);
+			if (hxAfter) eval(hxAfter);
 			run();
 		};
 
 		//const parseAttributes = (s) => s ? JSON.parse(s.replace(/'/g, '"')) : {};
 		const parseAttributes = (s) => s ? (s.startsWith('js:') ? Function(`return ${s.slice(3)}`)() : JSON.parse(s.replace(/'/g, '"'))) : {};
 
-		const applySwap = (targetEl, data, jxSwap, jxSelect) => {
-			const contentToInsert = (jxSelect) ? $DP(data, jxSelect) : data;
+		const applySwap = (targetEl, data, hxSwap, hxSelect) => {
+			const contentToInsert = (hxSelect) ? $DP(data, hxSelect) : data;
 			const swapActions = {
 				'outerHTML': () => targetEl.outerHTML = contentToInsert,
 				'append': () => targetEl.innerHTML += contentToInsert,
@@ -112,7 +112,7 @@
 				'after': () => targetEl.insertAdjacentHTML('afterend', contentToInsert),
 				'default': () => targetEl.innerHTML = contentToInsert,
 			};
-			const selectedAction = swapActions[jxSwap] || swapActions['default'];
+			const selectedAction = swapActions[hxSwap] || swapActions['default'];
 			selectedAction();
 		};
 	})();
