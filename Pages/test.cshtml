@@ -11,7 +11,7 @@
 </head>
 <body>
 
-	<div jx-get="test2.html" jx-target="#result2" jx-vals="a:1;b:2;c:3" jx-headers="Authorization: Bearer Token123; Custom-Header: Value123">
+	<div jx-get="test2.html" jx-target="#result2" jx-vals="js:{a:1,b:2,c:3}" jx-headers="{'Authorization':'Bearer Token123','Custom-Header':'Value123'}">
     <button>Load Data</button>
 </div>
 
@@ -60,6 +60,8 @@
 			});
 		}
 
+		const getEventType = (el) => (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) ? 'change' : 'click';
+
 		const applyLogic = (el, verb) => {
 			const url = el.attr(`jx-${verb}`), jxTarget = el.attr('jx-target'), jxTrigger = el.attr('jx-trigger');
 			let targetEl = jxTarget ? $(jxTarget) : el;
@@ -69,7 +71,7 @@
 					e.preventDefault();
 					await fetchData(url, targetEl, el, { method: verb, body: new URLSearchParams(new FormData(el)) });
 				});
-			} else el.on(jxTrigger || 'click', async () => await fetchData(url, targetEl, el, { method: verb }));
+				} else el.on(jxTrigger || getEventType(el), async () => await fetchData(url, targetEl, el, { method: verb }));
 		};
 
 		const fetchData = async (url, targetEl, el, options = {}) => {
@@ -97,16 +99,8 @@
 			run();
 		};
 
-		const parseAttributes = (attributeValue) => {
-			const attributes = {};
-			if (attributeValue) {
-				attributeValue.split(';').forEach(attribute => {
-					const [name, value] = attribute.split(':');
-					if (name && value) attributes[name.trim()] = value.trim();
-				});
-			}
-			return attributes;
-		};
+		//const parseAttributes = (s) => s ? JSON.parse(s.replace(/'/g, '"')) : {};
+		const parseAttributes = (s) => s ? (s.startsWith('js:') ? Function(`return ${s.slice(3)}`)() : JSON.parse(s.replace(/'/g, '"'))) : {};
 
 		const applySwap = (targetEl, data, jxSwap, jxSelect) => {
 			const contentToInsert = (jxSelect) ? $DP(data, jxSelect) : data;
@@ -121,8 +115,6 @@
 			const selectedAction = swapActions[jxSwap] || swapActions['default'];
 			selectedAction();
 		};
-
-
 	})();
 	
 </script>
