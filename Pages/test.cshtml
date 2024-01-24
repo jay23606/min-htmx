@@ -59,16 +59,15 @@
 		}));
 
 		const getEventType = el => el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement ? 'change' : 'click';
-		
+
 		const fetchData = async (url, targetEl, el, options = {}) => {
 			const hxBefore = el.attr('hx-before'), hxAfter = el.attr('hx-after'), hxHeaders = el.attr('hx-headers'),
-				hxVals = el.attr('hx-vals'), hxSwap = el.attr('hx-swap');
+				hxVals = el.attr('hx-vals'), hxSwap = el.attr('hx-swap'), hxSelect = el.attr('hx-select');
 			if (hxBefore) eval(hxBefore);
 			const method = options.method || 'get';
-			if (hxVals) (method === 'get') ? url += '?' + new URLSearchParams(json(hxVals)) : options.body = json(hxVals);
+			if (hxVals) method === 'get' ? url += '?' + new URLSearchParams(json(hxVals)) : options.body = json(hxVals);
 			const response = await fetch(url, { ...options, method, headers: { ...options.headers, ...json(hxHeaders) } });
 			const data = await response.text();
-			const hxSelect = el.getAttribute('hx-select');
 			applySwap(targetEl, data, hxSwap, hxSelect);
 			if (hxAfter) eval(hxAfter);
 			run();
