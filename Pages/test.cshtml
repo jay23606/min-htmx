@@ -75,7 +75,7 @@
 		};
 
 		const json = s => s ? s.startsWith('js:') ? Function(`return ${s.slice(3)}`)() : JSON.parse(s.replace(/'/g, '"')) : {};
-
+		
 		const applySwap = (el, data, hxSwap, hxSelect) => {
 			const content = (hxSelect) ? $DP(data, hxSelect) : data;
 			const actions = {
