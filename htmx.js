@@ -2452,13 +2452,6 @@ return (function () {
         }
 
         function removeRequestIndicators(indicators, disabled) {
-            forEach(indicators, function (ic) {
-                var internalData = getInternalData(ic);
-                internalData.requestCount = (internalData.requestCount || 0) - 1;
-                if (internalData.requestCount === 0) {
-                    ic.classList["remove"].call(ic.classList, htmx.config.requestClass);
-                }
-            });
             forEach(disabled, function (disabledElement) {
                 var internalData = getInternalData(disabledElement);
                 internalData.requestCount = (internalData.requestCount || 0) - 1;
@@ -2466,6 +2459,15 @@ return (function () {
                     disabledElement.removeAttribute('disabled');
                 }
             });
+            
+            forEach(indicators, function (ic) {
+                var internalData = getInternalData(ic);
+                internalData.requestCount = (internalData.requestCount || 0) - 1;
+                if (internalData.requestCount === 0) {
+                    ic.classList["remove"].call(ic.classList, htmx.config.requestClass);
+                }
+            });
+            
         }
 
         //====================================================================
